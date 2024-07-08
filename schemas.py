@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Any
+from typing import Any, List
 from datetime import datetime
 
 class CompanyCreate(BaseModel):
@@ -19,8 +19,14 @@ class SensorCreate(BaseModel):
     sensor_meta: str
 
 class SensorDataCreate(BaseModel):
-    sensor_id: int
-    json_data: Any
+    sensor_api_key: str
+    json_data: List[Any]
+
+class SensorDataGet(BaseModel):
+    company_api_key: str
+    from_epoch: int
+    to_epoch: int
+    sensor_id: List[int]
     
 class SensorDataResponse(BaseModel):
     id: int
