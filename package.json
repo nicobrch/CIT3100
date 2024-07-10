@@ -1,0 +1,16 @@
+{
+  "name": "t3-emergentes",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "drizzle-kit": "^0.23.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.32.0",
+    "express": "^4.19.2"
+  }
+}
