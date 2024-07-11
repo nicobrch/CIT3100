@@ -11,7 +11,7 @@ const url = "/api/v1/";
 app.use(cors());
 app.use(express.json());
 
-/* Insertar sensor data */
+/* POST sensor data */
 app.post(url.concat("sensor_data"), async (req, res) => {
   const { apiKey, data } = req.body;
   if (!apiKey || !data) {
@@ -34,7 +34,7 @@ app.post(url.concat("sensor_data"), async (req, res) => {
   return res.status(201).send("Se insertó correctamente el sensor data.");
 });
 
-/* Obtener sensor data */
+/* GET sensor data */
 app.get(url.concat("sensor_data"), async (req, res) => {
   const { companyApiKey, fromEpoch, toEpoch, sensorIds } = req.body;
   if (!companyApiKey || !fromEpoch || !toEpoch || !sensorIds) {
@@ -61,7 +61,7 @@ app.get(url.concat("sensor_data"), async (req, res) => {
   return res.status(200).json(sensorDataResult);
 });
 
-/* CRUD ubicacion, mostrar todos */
+/* GET ubicacion, mostrar todos */
 app.get(url.concat("location"), async (req, res) => {
   const { companyApiKey } = req.query;
   if (typeof companyApiKey !== "string") {
@@ -81,7 +81,7 @@ app.get(url.concat("location"), async (req, res) => {
   return res.status(200).json(locationResult);
 });
 
-/* CRUD ubicacion, mostrar uno */
+/* GET ubicacion, mostrar uno */
 app.get(url.concat("location/:locationName"), async (req, res) => {
   const { companyApiKey } = req.query;
   const { locationName } = req.params;
@@ -100,7 +100,7 @@ app.get(url.concat("location/:locationName"), async (req, res) => {
       eq(schema.location.company_id, companyResult[0].id)
     )
   );
-  
+
   if (locationResult.length === 0) {
     return res.status(404).send("Location not found");
   }
@@ -108,18 +108,44 @@ app.get(url.concat("location/:locationName"), async (req, res) => {
   return res.status(200).json(locationResult);
 });
 
-/* CRUD ubicacion, actualizar */
-app.post(url.concat("location"), async (req, res) => {
+/* UPDATE ubicacion */
+app.put(url.concat("location"), async (req, res) => {
   const { companyApiKey, locationName, locationCountry, locationCity, locationMeta } = req.body;
-  if (!companyApiKey || !locationName || !locationCountry || !locationCity || !locationMeta) {
+  if (!companyApiKey || !locationName) {
     return res.status(400).send("Missing required fields.");
   }
+
   const companyResult = await db.select().from(schema.company).where(eq(schema.company.company_api_key, companyApiKey));
   if (companyResult.length === 0) {
     return res.status(401).send("Invalid API Key");
   }
 
-  const locationResult = await db.update(schema.location).set()
+  const locationResult = await db.update(schema.location)
+    .set({location_name: locationName, location_country: locationCountry, location_city: locationCity, location_meta: locationMeta})
+    .where(and(eq(schema.location.company_id, companyResult[0].id), eq(schema.location.location_name, locationName)))
+    .returning({ updatedId: schema.location.id });
+
+  return res.status(200).json(locationResult);
+});
+
+/* DELETE ubicacion */
+app.delete(url.concat("location"), async (req, res) => {
+  const { companyApiKey, locationName } = req.body;
+  if (!companyApiKey || !locationName) {
+    return res.status(400).send("Missing required fields.");
+  }
+
+  const companyResult = await db.select().from(schema.company).where(eq(schema.company.company_api_key, companyApiKey));
+  if (companyResult.length === 0) {
+    return res.status(401).send("Invalid API Key");
+  }
+
+  const locationResult = await db.delete(schema.location).where(
+    and(
+      eq(schema.location.company_id, companyResult[0].id),
+      eq(schema.location.location_name, locationName)
+    )
+  );
 
   return res.status(200).json(locationResult);
 });
