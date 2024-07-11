@@ -63,16 +63,17 @@ app.get(url.concat("sensor_data"), async (req, res) => {
 
 /* CRUD ubicacion, mostrar todos */
 app.get(url.concat("location"), async (req, res) => {
-  const { companyApiKey } = req.params;
-  if (!companyApiKey) {
+  const { companyApiKey } = req.query;
+  if (typeof companyApiKey !== "string") {
     return res.status(400).send("Missing required fields.");
   }
+
   const companyResult = await db.select().from(schema.company).where(eq(schema.company.company_api_key, companyApiKey));
   if (companyResult.length === 0) {
     return res.status(401).send("Invalid API Key");
   }
 
-  const locationResult = await db.select().from(schema.location);
+  const locationResult = await db.select().from(schema.location).where(eq(schema.location.company_id, companyResult[0].id));
   if (locationResult.length === 0) {
     return res.status(404).send("No locations found.");
   }
@@ -81,17 +82,25 @@ app.get(url.concat("location"), async (req, res) => {
 });
 
 /* CRUD ubicacion, mostrar uno */
-app.post(url.concat("location"), async (req, res) => {
-  const { companyApiKey, locationName } = req.body;
-  if (!companyApiKey || !locationName) {
+app.get(url.concat("location/:locationName"), async (req, res) => {
+  const { companyApiKey } = req.query;
+  const { locationName } = req.params;
+  if (typeof companyApiKey !== "string" || !locationName) {
     return res.status(400).send("Missing required fields.");
   }
+
   const companyResult = await db.select().from(schema.company).where(eq(schema.company.company_api_key, companyApiKey));
   if (companyResult.length === 0) {
     return res.status(401).send("Invalid API Key");
   }
 
-  const locationResult = await db.select().from(schema.location).where(eq(schema.location.location_name, locationName));
+  const locationResult = await db.select().from(schema.location).where(
+    and(
+      eq(schema.location.location_name, locationName),
+      eq(schema.location.company_id, companyResult[0].id)
+    )
+  );
+  
   if (locationResult.length === 0) {
     return res.status(404).send("Location not found");
   }
