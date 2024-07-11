@@ -145,9 +145,119 @@ app.delete(url.concat("location"), async (req, res) => {
       eq(schema.location.company_id, companyResult[0].id),
       eq(schema.location.location_name, locationName)
     )
-  );
+  ).returning({ deletedId: schema.location.id });
 
   return res.status(200).json(locationResult);
+});
+
+/* GET sensor, mostrar todos */
+app.get(url.concat("sensor"), async (req, res) => {
+  const { companyApiKey } = req.query;
+  if (typeof companyApiKey !== "string") {
+    return res.status(400).send("Missing required fields.");
+  }
+
+  const companyResult = await db.select().from(schema.company).where(eq(schema.company.company_api_key, companyApiKey));
+  if (companyResult.length === 0) {
+    return res.status(401).send("Invalid API Key");
+  }
+
+  const sensorResult = await db.select().from(schema.sensor)
+    .innerJoin(schema.location, eq(schema.sensor.location_id, schema.location.id))
+    .where(eq(schema.location.company_id, companyResult[0].id)
+  );
+  if (sensorResult.length === 0) {
+    return res.status(404).send("No sensors found.");
+  }
+
+  return res.status(200).json(sensorResult);
+});
+
+/* GET sensor, mostrar uno */
+app.get(url.concat("sensor/:sensorId"), async (req, res) => {
+  const { companyApiKey } = req.query;
+  const { sensorId } = req.params;
+  if (typeof companyApiKey !== "string" || !sensorId) {
+    return res.status(400).send("Missing required fields.");
+  }
+
+  const companyResult = await db.select().from(schema.company).where(eq(schema.company.company_api_key, companyApiKey));
+  if (companyResult.length === 0) {
+    return res.status(401).send("Invalid API Key");
+  }
+
+  const sensorResult = await db.select().from(schema.sensor)
+    .innerJoin(schema.location, eq(schema.sensor.location_id, schema.location.id))
+    .where(and(eq(schema.location.company_id, companyResult[0].id), eq(schema.sensor.id, parseInt(sensorId)))
+  );
+  if (sensorResult.length === 0) {
+    return res.status(404).send("No sensors found.");
+  }
+
+  return res.status(200).json(sensorResult);
+});
+
+/* UPDATE sensor */
+app.put(url.concat("sensor"), async (req, res) => {
+  const { companyApiKey, sensorId, sensorName, sensorCategory, sensorMeta, locationId } = req.body;
+  if (!companyApiKey || !sensorId) {
+    return res.status(400).send("Missing required fields.");
+  }
+
+  const companyResult = await db.select().from(schema.company).where(eq(schema.company.company_api_key, companyApiKey));
+  if (companyResult.length === 0) {
+    return res.status(401).send("Invalid API Key");
+  }
+
+  const locationResult = await db.select().from(schema.location).where(eq(schema.location.company_id, companyResult[0].id));
+  if (locationResult.length === 0) {
+    return res.status(404).send("No locations found for this company.");
+  }
+  const locationIds = locationResult.map((location) => location.id);
+
+  const sensorResult = await db.update(schema.sensor)
+    .set({sensor_name: sensorName, sensor_category: sensorCategory, sensor_meta: sensorMeta, location_id: locationId})
+    .where(
+      and(
+        eq(schema.sensor.id, parseInt(sensorId)),
+        inArray(schema.sensor.location_id, locationIds)
+      )
+    )
+    .returning({ updatedId: schema.sensor.id }
+  );
+
+  return res.status(200).json(sensorResult);
+});
+
+/* DELETE sensor */
+app.delete(url.concat("sensor"), async (req, res) => {
+  const { companyApiKey, sensorId } = req.body;
+  if (!companyApiKey || !sensorId) {
+    return res.status(400).send("Missing required fields.");
+  }
+
+  const companyResult = await db.select().from(schema.company).where(eq(schema.company.company_api_key, companyApiKey));
+  if (companyResult.length === 0) {
+    return res.status(401).send("Invalid API Key");
+  }
+
+  const locationResult = await db.select().from(schema.location).where(eq(schema.location.company_id, companyResult[0].id));
+  if (locationResult.length === 0) {
+    return res.status(404).send("No locations found for this company.");
+  }
+  const locationIds = locationResult.map((location) => location.id);
+
+  const sensorResult = await db.delete(schema.sensor)
+    .where(
+      and(
+        eq(schema.sensor.id, parseInt(sensorId)),
+        inArray(schema.sensor.location_id, locationIds)
+      )
+    )
+    .returning({ deletedId: schema.sensor.id }
+  );
+
+  return res.status(200).json(sensorResult);
 });
 
 app.listen(port, () => {
