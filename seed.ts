@@ -34,6 +34,18 @@ const seedTables = async () => {
     },
     {
       location_name: 'ubicacion2',
+      location_country: 'chile',
+      location_city: 'concepcion',
+      company_id: companyIdResult[0].id,
+    },
+    {
+      location_name: 'location1',
+      location_country: 'usa',
+      location_city: 'california',
+      company_id: companyIdResult[1].id,
+    },
+    {
+      location_name: 'location2',
       location_country: 'usa',
       location_city: 'newyork',
       company_id: companyIdResult[1].id,
