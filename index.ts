@@ -18,11 +18,13 @@ app.post(url.concat("sensor_data"), async (req, res) => {
     return res.status(400).send("Missing required fields");
   }
 
+  // Revisar si está bien la API key
   const sensorResult = await db.select().from(schema.sensor).where(eq(schema.sensor.sensor_api_key, apiKey));
   if (sensorResult.length === 0) {
     return res.status(400).send("Invalid API Key");
   }
 
+  // Insertar el sensor data
   const sensorResultId = sensorResult[0].id;
   await db.insert(schema.sensor_data).values([
     {
@@ -36,19 +38,43 @@ app.post(url.concat("sensor_data"), async (req, res) => {
 
 /* GET sensor data */
 app.get(url.concat("sensor_data"), async (req, res) => {
-  const { companyApiKey, fromEpoch, toEpoch, sensorIds } = req.body;
-  if (!companyApiKey || !fromEpoch || !toEpoch || !sensorIds) {
+  const { companyApiKey, fromEpoch, toEpoch, sensorIds } = req.query;
+  if (typeof companyApiKey !== "string" || typeof fromEpoch !== "string" || typeof toEpoch !== "string" || typeof sensorIds !== "string") {
     return res.status(400).send("Missing required fields");
   }
 
+  // Revisar si está bien la company API key
   const companyResult = await db.select().from(schema.company).where(eq(schema.company.company_api_key, companyApiKey));
   if (companyResult.length === 0) {
     return res.status(401).send("Invalid API Key");
   }
 
+  // Revisar si sensorIds tiene el formato "[1, 2, 3]"
+  const parsedSensorIds = JSON.parse(sensorIds);
+  if (!Array.isArray(parsedSensorIds)) {
+    return res.status(400).send("Invalid sensorIds format");
+  }
+
+  // Buscar los sensores pertenecientes a la compañía
+  const sensorResult = await db.select().from(schema.sensor)
+    .innerJoin(schema.location, eq(schema.sensor.location_id, schema.location.id))
+    .where(eq(schema.location.company_id, companyResult[0].id)
+  );
+  if (sensorResult.length === 0) {
+    return res.status(404).send("No sensors found.");
+  }
+
+  // Filtrar los sensores que pertenecen a la compañía, y que están en el parámetro de sensorIds
+  const companySensorIds = sensorResult.map((sensor) => sensor.sensor.id);
+  const filteredSensorIds = parsedSensorIds.filter((sensorId) => companySensorIds.includes(sensorId));
+  if (filteredSensorIds.length === 0) {
+    return res.status(404).send("No sensors found for the company.");
+  }
+
+  // Obtener los sensor data que cumplen con los filtros
   const sensorDataResult = await db.select().from(schema.sensor_data).where(
     and(
-      inArray(schema.sensor_data.sensor_id, sensorIds),
+      inArray(schema.sensor_data.sensor_id, filteredSensorIds),
       gte(schema.sensor_data.timestamp, fromEpoch),
       lte(schema.sensor_data.timestamp, toEpoch)
     )
