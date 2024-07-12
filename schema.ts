@@ -14,7 +14,7 @@ export const company = sqliteTable('company', {
 
 export const location = sqliteTable('location', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  company_id: integer('company_id').references(() => company.id),
+  company_id: integer('company_id').references(() => company.id).notNull(),
   location_name: text('location_name').notNull(),
   location_country: text('location_country').notNull(),
   location_city: text('location_city').notNull(),
@@ -23,7 +23,7 @@ export const location = sqliteTable('location', {
 
 export const sensor = sqliteTable('sensor', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  location_id: integer('location_id').references(() => location.id),
+  location_id: integer('location_id').references(() => location.id).notNull(),
   sensor_name: text('sensor_name').notNull(),
   sensor_category: text('sensor_category').notNull(),
   sensor_api_key: text('sensor_api_key').notNull(),
@@ -32,7 +32,7 @@ export const sensor = sqliteTable('sensor', {
 
 export const sensor_data = sqliteTable('sensordata', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  sensor_id: integer('sensor_id').references(() => sensor.id),
+  sensor_id: integer('sensor_id').references(() => sensor.id).notNull(),
   data: text('data', { mode: 'json'}).notNull(),
-  timestamp: text('timestamp').default(sql`(CURRENT_TIMESTAMP)`),
+  timestamp: text('timestamp').default(sql`(CURRENT_TIMESTAMP)`).notNull(),
 });

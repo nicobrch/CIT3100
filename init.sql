@@ -1,38 +1,38 @@
-CREATE TABLE IF NOT EXISTS admin (
-    username TEXT PRIMARY KEY,
-    password TEXT NOT NULL
+CREATE TABLE `admin` (
+	`username` text PRIMARY KEY NOT NULL,
+	`password` text NOT NULL
 );
-
-CREATE TABLE IF NOT EXISTS company (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    company_name TEXT NOT NULL,
-    company_api_key TEXT NOT NULL
+--> statement-breakpoint
+CREATE TABLE `company` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`company_name` text NOT NULL,
+	`company_api_key` text NOT NULL
 );
-
-CREATE TABLE IF NOT EXISTS location (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    company_id INTEGER NOT NULL,
-    location_name TEXT NOT NULL,
-    location_country TEXT NOT NULL,
-    location_city TEXT NOT NULL,
-    location_meta TEXT,
-    FOREIGN KEY (company_id) REFERENCES company(id)
+--> statement-breakpoint
+CREATE TABLE `location` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`company_id` integer NOT NULL,
+	`location_name` text NOT NULL,
+	`location_country` text NOT NULL,
+	`location_city` text NOT NULL,
+	`location_meta` text,
+	FOREIGN KEY (`company_id`) REFERENCES `company`(`id`) ON UPDATE no action ON DELETE no action
 );
-
-CREATE TABLE IF NOT EXISTS sensor (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    location_id INTEGER NOT NULL,
-    sensor_name TEXT NOT NULL,
-    sensor_category TEXT NOT NULL,
-    sensor_api_key TEXT NOT NULL,
-    sensor_meta TEXT,
-    FOREIGN KEY (location_id) REFERENCES location(id)
+--> statement-breakpoint
+CREATE TABLE `sensor` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`location_id` integer NOT NULL,
+	`sensor_name` text NOT NULL,
+	`sensor_category` text NOT NULL,
+	`sensor_api_key` text NOT NULL,
+	`sensor_meta` text,
+	FOREIGN KEY (`location_id`) REFERENCES `location`(`id`) ON UPDATE no action ON DELETE no action
 );
-
-CREATE TABLE IF NOT EXISTS sensordata (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    sensor_id INTEGER NOT NULL,
-    data JSON NOT NULL,
-    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (sensor_id) REFERENCES sensor(id)
+--> statement-breakpoint
+CREATE TABLE `sensordata` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`sensor_id` integer NOT NULL,
+	`data` text NOT NULL,
+	`timestamp` text DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
+	FOREIGN KEY (`sensor_id`) REFERENCES `sensor`(`id`) ON UPDATE no action ON DELETE no action
 );
