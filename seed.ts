@@ -65,19 +65,19 @@ const seedTables = async () => {
       sensor_name: 'sensor2',
       sensor_category: 'humedad',
       sensor_api_key: generateApiKey(),
-      location_id: locationIdResult[0].id,
+      location_id: locationIdResult[1].id,
     },
     {
       sensor_name: 'sensor1',
-      sensor_category: 'presion',
+      sensor_category: 'pressure',
       sensor_api_key: generateApiKey(),
-      location_id: locationIdResult[1].id,
+      location_id: locationIdResult[2].id,
     },
     {
       sensor_name: 'sensor2',
-      sensor_category: 'sonido',
+      sensor_category: 'sound',
       sensor_api_key: generateApiKey(),
-      location_id: locationIdResult[1].id,
+      location_id: locationIdResult[3].id,
     }
   ]);
 

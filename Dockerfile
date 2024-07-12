@@ -2,13 +2,9 @@ FROM oven/bun:1
 
 WORKDIR /usr/src/app
 
-COPY package.json .
-
-COPY bun.lockb .
+COPY . .
 
 RUN bun install
-
-COPY . .
 
 EXPOSE 3000
 
