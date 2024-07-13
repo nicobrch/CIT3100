@@ -5,7 +5,8 @@ WORKDIR /usr/src/app
 ENV PORT 8080
 ENV HOST 0.0.0.0
 
-COPY package.json bun.lockb
+COPY package*.json .
+COPY bun.lockb .
 
 RUN bun install --production
 
