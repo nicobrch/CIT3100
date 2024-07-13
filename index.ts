@@ -5,11 +5,15 @@ import express from "express";
 import cors from "cors";
 
 const app = express();
-const port = 3000;
+const port = 8080;
 const url = "/api/v1/";
 
 app.use(cors());
 app.use(express.json());
+
+app.get('/', (req, res) => {
+  res.send('Hello World!');
+});
 
 /* POST sensor data */
 app.post(url.concat("sensor_data"), async (req, res) => {
